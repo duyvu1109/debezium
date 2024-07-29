@@ -1,17 +1,11 @@
-FROM --platform=linux/arm64 quay.io/debezium/connect:2.6
-ENV KAFKA_CONNECT_JDBC_DIR=$KAFKA_CONNECT_PLUGINS_DIR/debezium-connector-kafka
+FROM quay.io/debezium/connect:2.6
 
 # Deploy MySQL JDBC Driver
-COPY mysql-connector-j-8.4.0.jar /kafka/libs
-
-RUN rm -rf $KAFKA_CONNECT_PLUGINS_DIR/debezium-connector-jdbc
-RUN mkdir -p $KAFKA_CONNECT_PLUGINS_DIR/debezium-connector-jdbc
-COPY ./debezium-connector-jdbc ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-jdbc
+COPY ./plugins/mysql-connector-j-8.4.0.jar /kafka/libs
 
 # custom timestamp converter
-COPY ./TimestampConverter-1.2.3-SNAPSHOT.jar ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-jdbc/
-COPY ./TimestampConverter-1.2.3-SNAPSHOT.jar ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-mysql/
-COPY ./TimestampConverter-1.2.3-SNAPSHOT.jar ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-kafka/
+COPY ./plugins/TimestampConverter-1.2.3-SNAPSHOT.jar ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-jdbc/
+COPY ./plugins/TimestampConverter-1.2.3-SNAPSHOT.jar ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-mysql/
 
 # remove redundant plugins
 RUN rm -rf $KAFKA_CONNECT_PLUGINS_DIR/debezium-connector-ibmi
@@ -30,4 +24,9 @@ RUN mkdir /kafka/etc && cd /kafka/etc &&\
         curl -so jmx_prometheus_javaagent.jar \
         https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/1.0.0/jmx_prometheus_javaagent-1.0.0.jar
 
-COPY jmx-exporter-config.yml /kafka/etc/jmx-exporter-config.yml
+COPY ./plugins/jmx-exporter-config.yml /kafka/etc/jmx-exporter-config.yml
+
+
+# custom jdbc
+# RUN rm ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-jdbc/debezium-connector-*
+# COPY debezium-connector-jdbc-3.0.0-SNAPSHOT.jar ${KAFKA_CONNECT_PLUGINS_DIR}/debezium-connector-jdbc/
